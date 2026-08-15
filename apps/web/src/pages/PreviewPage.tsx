@@ -26,26 +26,29 @@ export function PreviewPage() {
   }
 
   return (
-    <section className="preview-page">
-      <h1>Предпросмотр упоминаний</h1>
-      <p className="lead">
-        Введите поисковый запрос — мы покажем примеры найденных сообщений до подключения услуги.
-      </p>
+    <section className="page">
+      <div className="container page__inner page__inner--narrow">
+        <h1>Предпросмотр упоминаний</h1>
+        <p className="page__lead">
+          Введите поисковый запрос — покажем последние найденные упоминания до подключения
+          услуги.
+        </p>
 
-      <PreviewSearchForm
-        query={query}
-        loading={loading}
-        onQueryChange={setQuery}
-        onSubmit={handleSearch}
-      />
+        <PreviewSearchForm
+          query={query}
+          loading={loading}
+          onQueryChange={setQuery}
+          onSubmit={handleSearch}
+        />
 
-      {error && <p className="error">{error}</p>}
-      {result && (
-        <>
-          <MentionList result={result} />
-          <AccessRequestForm query={result.query} />
-        </>
-      )}
+        {error && <p className="error">{error}</p>}
+        {result && (
+          <>
+            <MentionList result={result} />
+            <AccessRequestForm query={result.query} />
+          </>
+        )}
+      </div>
     </section>
   );
 }
