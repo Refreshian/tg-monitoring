@@ -1,0 +1,17 @@
+# Start API and web dev servers in separate terminals
+
+Write-Host "TG-Monitoring dev setup"
+Write-Host ""
+Write-Host "Terminal 1 (API):"
+Write-Host "  cd apps/api"
+Write-Host "  python -m venv .venv"
+Write-Host "  .venv\Scripts\activate"
+Write-Host "  pip install -e .[dev]"
+Write-Host "  playwright install chromium"
+Write-Host "  copy .env.example .env"
+Write-Host "  uvicorn app.main:app --reload"
+Write-Host ""
+Write-Host "Terminal 2 (Web):"
+Write-Host "  cd apps/web"
+Write-Host "  npm install"
+Write-Host "  npm run dev"

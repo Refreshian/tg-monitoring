@@ -1,0 +1,94 @@
+from playwright.async_api import Page, TimeoutError as PlaywrightTimeoutError
+
+from app.core.config import settings
+
+
+class BrAnalyticsSearch:
+    async def run_query(self, page: Page, query: str) -> str:
+        """
+        Paste the search query into Brand Analytics keywords field,
+        confirm keyword-check dialog if shown, click "Показать результаты",
+        return results HTML.
+        """
+        keywords = page.locator("#key_words_operator")
+        await keywords.wait_for(state="visible")
+        await keywords.click()
+
+        await keywords.evaluate(
+            """(el) => {
+                el.focus();
+                el.innerHTML = '';
+                el.textContent = '';
+                el.dispatchEvent(new Event('input', { bubbles: true }));
+            }"""
+        )
+        await page.keyboard.type(query, delay=15)
+        await page.keyboard.press("Tab")  # blur and trigger keyword validation
+
+        await self._confirm_keywords_dialog(page)
+
+        show_results = page.locator("#show_result_btn")
+        await show_results.wait_for(state="visible")
+        await show_results.click()
+
+        # Dialog may reappear when starting preview search
+        await self._confirm_keywords_dialog(page)
+
+        processing = page.locator(".js--processing_box")
+        try:
+            await processing.wait_for(state="visible", timeout=5_000)
+        except PlaywrightTimeoutError:
+            pass
+
+        try:
+            await page.wait_for_function(
+                """() => {
+                    const el = document.getElementById('search_content');
+                    if (!el) return false;
+                    const style = window.getComputedStyle(el);
+                    if (style.display === 'none' || style.visibility === 'hidden') return false;
+                    const total = el.querySelector('.total_title');
+                    const items = el.querySelectorAll('.feed_item');
+                    return Boolean(total) || items.length > 0;
+                }""",
+                timeout=settings.playwright_timeout_ms,
+            )
+        except PlaywrightTimeoutError:
+            await page.screenshot(path="preview_debug.png", full_page=True)
+            keywords_text = await keywords.inner_text()
+            raise RuntimeError(
+                "Brand Analytics preview did not return results. "
+                f"Keywords field value was: {keywords_text!r}. "
+                "Screenshot saved to preview_debug.png"
+            ) from None
+
+        return await page.locator("#search_content").inner_html()
+
+    async def _confirm_keywords_dialog(self, page: Page) -> None:
+        """Accept 'Проверка ключевых фраз' modal if Brand Analytics shows it."""
+        # Title text is the most stable hook for this BA dialog
+        title = page.get_by_text("Проверка ключевых фраз", exact=False)
+        try:
+            await title.first.wait_for(state="visible", timeout=4_000)
+        except PlaywrightTimeoutError:
+            return
+
+        dialog = title.first.locator(
+            "xpath=ancestor::div[contains(@class,'ui-dialog') or contains(@class,'dialog')][1]"
+        )
+        save = dialog.get_by_role("button", name="Сохранить")
+        if await save.count() == 0:
+            save = dialog.locator(".btn_blue, .custom_btn, button, a").filter(has_text="Сохранить")
+
+        if await save.count() == 0:
+            # Last resort: any visible Save near the dialog title
+            save = page.locator(".ui-dialog:visible, .dialog-window:visible").get_by_text(
+                "Сохранить", exact=True
+            )
+
+        await save.first.click()
+        try:
+            await title.first.wait_for(state="hidden", timeout=10_000)
+        except PlaywrightTimeoutError:
+            # Some BA builds keep the node in DOM but hide the wrapper
+            pass
