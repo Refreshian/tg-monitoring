@@ -444,6 +444,16 @@ input:focus {
   color: var(--accent);
 }
 
+.search-hit {
+  margin: 0;
+  padding: 0.05em 0.2em;
+  border-radius: 0.3em;
+  background: linear-gradient(120deg, rgba(76, 201, 240, 0.35), rgba(123, 97, 255, 0.4));
+  color: #ffffff;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
 .error {
   color: var(--danger);
 }
