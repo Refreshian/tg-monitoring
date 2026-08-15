@@ -39,11 +39,11 @@ npm install
 npm run dev
 ```
 
-## Предпросмотр (Brand Analytics)
+## Предпросмотр
 
 Эндпоинт `POST /api/v1/preview/search` с телом `{ "query": "..." }`:
 
-1. Логин на `brandanalytics.ru/account/login/`
+1. Логин на `bra...lytics.ru/account/login/`
 2. Если кнопка «Добавить новую тему» заблокирована (`lock`) — редактирование темы «Российская креативная неделя»
 3. Вставка запроса в `#key_words_operator`
 4. Подтверждение диалога «Проверка ключевых фраз» (если появился)
