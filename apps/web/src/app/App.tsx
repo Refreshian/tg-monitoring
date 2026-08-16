@@ -1,4 +1,5 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { YandexMetrikaHit } from "@/components/YandexMetrikaHit";
 import { SiteLayout } from "@/components/layout/SiteLayout";
 import { ContactPage } from "@/pages/ContactPage";
 import { HomePage } from "@/pages/HomePage";
@@ -8,6 +9,7 @@ import { ServicesPage } from "@/pages/ServicesPage";
 export function App() {
   return (
     <BrowserRouter>
+      <YandexMetrikaHit />
       <Routes>
         <Route element={<SiteLayout />}>
           <Route path="/" element={<HomePage />} />
