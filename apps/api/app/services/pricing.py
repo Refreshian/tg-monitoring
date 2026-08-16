@@ -13,15 +13,16 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
-# Fallback "Разово" tariffs from brandanalytics.ru/price/ (Aug 2026).
-DEFAULT_RAZOVO_TARIFFS: list[dict] = [
-    {"name": "Стартовый", "messages_per_month": 10_000, "price_rub": 45_500},
-    {"name": "Стартовый плюс", "messages_per_month": 50_000, "price_rub": 68_900},
-    {"name": "Базовый", "messages_per_month": 150_000, "price_rub": 100_100},
-    {"name": "Расширенный", "messages_per_month": 500_000, "price_rub": 201_500},
+# Fallback "Регулярно / Ежемесячно" tariffs from brandanalytics.ru/price/ (Aug 2026).
+DEFAULT_MONTHLY_TARIFFS: list[dict] = [
+    {"name": "Стартовый", "messages_per_month": 10_000, "price_rub": 35_000},
+    {"name": "Стартовый плюс", "messages_per_month": 50_000, "price_rub": 53_000},
+    {"name": "Базовый", "messages_per_month": 150_000, "price_rub": 77_000},
+    {"name": "Расширенный", "messages_per_month": 500_000, "price_rub": 155_000},
 ]
 
 CACHE_FILENAME = "ba_tariffs_cache.json"
+CACHE_MODE = "Регулярно / Ежемесячно"
 
 
 @dataclass(frozen=True)
@@ -57,8 +58,8 @@ def quote_access_price(
     discount_ratio: float | None = None,
 ) -> PriceQuote | None:
     """
-    Pick the cheapest Razovo tariff that covers monthly volume and apply the
-    configured discount for the visitor-facing quote.
+    Pick the cheapest monthly Regular tariff that covers monthly volume and apply
+    the configured discount for the visitor-facing quote.
 
     Стартовый / Стартовый плюс use a higher starter discount by default.
     """
@@ -107,16 +108,16 @@ def _is_starter_tariff(name: str) -> bool:
 
 
 def load_tariffs() -> list[Tariff]:
-    """Return cached tariffs (even if stale) or built-in Razovo defaults."""
+    """Return cached tariffs (even if stale) or built-in monthly Regular defaults."""
     return _read_cache(allow_stale=True) or [
-        _tariff_from_dict(item) for item in DEFAULT_RAZOVO_TARIFFS
+        _tariff_from_dict(item) for item in DEFAULT_MONTHLY_TARIFFS
     ]
 
 
 async def refresh_tariffs() -> list[Tariff] | None:
-    """Scrape https://brandanalytics.ru/price/ with Playwright (Разово mode)."""
+    """Scrape https://brandanalytics.ru/price/ (Регулярно → Ежемесячно)."""
     try:
-        tariffs = await _scrape_razovo_tariffs()
+        tariffs = await _scrape_monthly_regular_tariffs()
     except Exception:  # noqa: BLE001
         logger.exception("Brand Analytics price scrape failed")
         return None
@@ -174,8 +175,8 @@ def _read_cache(*, allow_stale: bool = False) -> list[Tariff] | None:
         if expired and not allow_stale:
             return None
         tariffs = [_tariff_from_dict(item) for item in payload["tariffs"]]
-        if not tariffs or not _looks_like_razovo(tariffs):
-            logger.warning("Ignoring BA tariffs cache with non-Razovo prices")
+        if not tariffs or not _looks_like_monthly_regular(tariffs):
+            logger.warning("Ignoring BA tariffs cache with non-monthly Regular prices")
             return None
         return tariffs
     except Exception:  # noqa: BLE001
@@ -189,7 +190,7 @@ def _write_cache(tariffs: list[Tariff]) -> None:
     payload = {
         "fetched_at": datetime.now(timezone.utc).isoformat(),
         "source": f"{settings.br_analytics_base_url.rstrip('/')}/price/",
-        "mode": "Разово",
+        "mode": CACHE_MODE,
         "tariffs": [asdict(t) for t in tariffs],
     }
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -210,7 +211,7 @@ def _parse_int(value: str | None) -> int | None:
     return int(digits) if digits else None
 
 
-async def _scrape_razovo_tariffs() -> list[Tariff]:
+async def _scrape_monthly_regular_tariffs() -> list[Tariff]:
     from playwright.async_api import async_playwright
 
     url = f"{settings.br_analytics_base_url.rstrip('/')}/price/"
@@ -221,15 +222,16 @@ async def _scrape_razovo_tariffs() -> list[Tariff]:
         page.set_default_timeout(settings.playwright_timeout_ms)
         try:
             await page.goto(url, wait_until="domcontentloaded")
-            await page.get_by_role("button", name="Разово").click()
+            await page.get_by_role("button", name="Регулярно").click()
+            await page.get_by_role("button", name="Ежемесячно").click()
             await page.wait_for_selector(".plan-messages-count", timeout=30_000)
-            # Wait until Razovo list prices appear (Starter is ~45 500, not yearly ~31 500).
+            # Monthly Starter is ~35 000; yearly discounted is ~31 500; Razovo ~45 500.
             await page.wait_for_function(
                 """() => {
                     const prices = [...document.querySelectorAll('.plan-price')]
                       .map((el) => Number((el.innerText || '').replace(/\\D/g, '')))
                       .filter((n) => n > 0);
-                    return prices.some((n) => n >= 40000 && n <= 60000);
+                    return prices.some((n) => n >= 33000 && n <= 40000);
                 }""",
                 timeout=15_000,
             )
@@ -265,19 +267,21 @@ async def _scrape_razovo_tariffs() -> list[Tariff]:
         tariffs.append(Tariff(name=name, messages_per_month=messages, price_rub=price))
 
     tariffs.sort(key=lambda t: t.messages_per_month)
-    if not _looks_like_razovo(tariffs):
-        logger.warning("Scraped tariffs do not look like Razovo prices: %s", tariffs)
+    if not _looks_like_monthly_regular(tariffs):
+        logger.warning("Scraped tariffs do not look like monthly Regular prices: %s", tariffs)
         return []
     return tariffs
 
 
-def _looks_like_razovo(tariffs: list[Tariff]) -> bool:
-    """Reject yearly/regular discounted prices accidentally scraped from the price page."""
+def _looks_like_monthly_regular(tariffs: list[Tariff]) -> bool:
+    """Reject Razovo (~45.5k) and yearly-discount (~31.5k) prices from the price page."""
     if not tariffs:
         return False
-    starter = next((t for t in tariffs if "стартовый" in t.name.lower() and "плюс" not in t.name.lower()), None)
+    starter = next(
+        (t for t in tariffs if "стартовый" in t.name.lower() and "плюс" not in t.name.lower()),
+        None,
+    )
     if starter is None:
         starter = tariffs[0]
-    # Razovo Starter is ~45 500; regular yearly is ~31 500.
-    return starter.price_rub >= 40_000
-
+    # Monthly Regular Starter is ~35 000.
+    return 33_000 <= starter.price_rub <= 40_000

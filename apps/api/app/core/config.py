@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     playwright_headless: bool = True
     playwright_timeout_ms: int = 90_000
 
-    # Visitor quote is BA "Разово" list price minus this ratio (Базовый+).
+    # Visitor quote is BA "Регулярно / Ежемесячно" list price minus this ratio (Базовый+).
     price_quote_discount_ratio: float = 0.32
     # Higher discount for entry tariffs Стартовый / Стартовый плюс.
     price_quote_starter_discount_ratio: float = 0.38
