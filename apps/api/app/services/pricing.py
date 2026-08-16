@@ -59,6 +59,8 @@ def quote_access_price(
     """
     Pick the cheapest Razovo tariff that covers monthly volume and apply the
     configured discount for the visitor-facing quote.
+
+    Стартовый / Стартовый плюс use a higher starter discount by default.
     """
     if estimated_monthly_messages <= 0:
         return None
@@ -77,8 +79,13 @@ def quote_access_price(
         chosen = sorted_tiers[-1]
         price_is_from = True
 
-    ratio = discount_ratio if discount_ratio is not None else settings.price_quote_discount_ratio
-    ratio = min(0.40, max(0.20, ratio))
+    if discount_ratio is not None:
+        ratio = discount_ratio
+    elif _is_starter_tariff(chosen.name):
+        ratio = settings.price_quote_starter_discount_ratio
+    else:
+        ratio = settings.price_quote_discount_ratio
+    ratio = min(0.50, max(0.20, ratio))
     raw = chosen.price_rub * (1.0 - ratio)
     # Nearest 100 keeps quotes readable while staying close to BA * (1 - discount).
     quote = int(round(raw / 100.0) * 100)
@@ -92,6 +99,11 @@ def quote_access_price(
         estimated_monthly_messages=estimated_monthly_messages,
         price_is_from=price_is_from,
     )
+
+
+def _is_starter_tariff(name: str) -> bool:
+    lowered = name.lower()
+    return "стартовый" in lowered
 
 
 def load_tariffs() -> list[Tariff]:
