@@ -14,6 +14,7 @@ logger = logging.getLogger("uvicorn.error")
 
 # Brand Analytics preview edits one shared theme — serialize searches.
 _preview_lock = asyncio.Lock()
+PREVIEW_ITEMS_LIMIT = 45
 
 
 class PreviewService:
@@ -24,6 +25,8 @@ class PreviewService:
         async with _preview_lock:
             client = BrAnalyticsClient()
             result = await client.search_mentions(search_query)
+
+        items = result.items[:PREVIEW_ITEMS_LIMIT]
 
         estimated_price_rub: int | None = None
         price_is_from = False
@@ -37,10 +40,11 @@ class PreviewService:
                 price_is_from = quote.price_is_from
 
         logger.info(
-            "preview original=%r query=%r changed=%s items=%s weekly=%s monthly=%s price=%s",
+            "preview original=%r query=%r changed=%s items=%s/%s weekly=%s monthly=%s price=%s",
             rewrite.original_query,
             search_query,
             rewrite.changed,
+            len(items),
             len(result.items),
             weekly,
             monthly,
@@ -52,8 +56,8 @@ class PreviewService:
             original_query=rewrite.original_query,
             query_changed=rewrite.changed,
             query_note=rewrite.note or None,
-            total=len(result.items),
-            items=result.items,
+            total=len(items),
+            items=items,
             estimated_price_rub=estimated_price_rub,
             price_is_from=price_is_from,
         )
