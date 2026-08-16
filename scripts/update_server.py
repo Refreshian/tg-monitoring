@@ -156,7 +156,7 @@ def main() -> None:
         ssh,
         deploy_path,
         {
-            "PRICE_QUOTE_DISCOUNT_RATIO": "0.28",
+            "PRICE_QUOTE_DISCOUNT_RATIO": "0.32",
             "BA_TARIFFS_CACHE_DAYS": "30",
         },
     )

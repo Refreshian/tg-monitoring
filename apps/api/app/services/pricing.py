@@ -57,8 +57,8 @@ def quote_access_price(
     discount_ratio: float | None = None,
 ) -> PriceQuote | None:
     """
-    Pick the cheapest Razovo tariff that covers monthly volume and apply a
-    25–30% discount for the visitor-facing quote.
+    Pick the cheapest Razovo tariff that covers monthly volume and apply the
+    configured discount for the visitor-facing quote.
     """
     if estimated_monthly_messages <= 0:
         return None
@@ -78,8 +78,7 @@ def quote_access_price(
         price_is_from = True
 
     ratio = discount_ratio if discount_ratio is not None else settings.price_quote_discount_ratio
-    # Clamp to the 25–30% band requested for visitor quotes.
-    ratio = min(0.30, max(0.25, ratio))
+    ratio = min(0.40, max(0.20, ratio))
     raw = chosen.price_rub * (1.0 - ratio)
     # Nearest 100 keeps quotes readable while staying close to BA * (1 - discount).
     quote = int(round(raw / 100.0) * 100)

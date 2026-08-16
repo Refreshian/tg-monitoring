@@ -13,8 +13,8 @@ class Settings(BaseSettings):
     playwright_headless: bool = True
     playwright_timeout_ms: int = 90_000
 
-    # Visitor quote is BA "Разово" list price minus this ratio (kept in 25–30%).
-    price_quote_discount_ratio: float = 0.28
+    # Visitor quote is BA "Разово" list price minus this ratio.
+    price_quote_discount_ratio: float = 0.32
     ba_tariffs_cache_days: int = 30
 
     database_url: str = "postgresql+asyncpg://tg_monitoring:tg_monitoring@localhost:5432/tg_monitoring"
