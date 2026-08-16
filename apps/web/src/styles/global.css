@@ -404,6 +404,25 @@ input:focus {
   margin-top: 1.5rem;
 }
 
+.price-estimate {
+  margin-top: 1.5rem;
+  padding: 1.1rem 0 0;
+  border-top: 1px solid var(--line);
+}
+
+.price-estimate__text {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  line-height: 1.45;
+  color: var(--text);
+}
+
+.price-estimate__text strong {
+  color: var(--accent);
+  font-weight: 700;
+}
+
 .mention-list h2 {
   margin: 0 0 1rem;
   font-size: 1.25rem;
@@ -463,14 +482,14 @@ input:focus {
 }
 
 .access-form {
-  margin-top: 2rem;
-  padding-top: 1.25rem;
+  margin-top: 1.5rem;
+  padding: 1.5rem 0 0;
   border-top: 1px solid var(--line);
 }
 
 .access-form h2 {
-  margin: 0;
-  font-size: 1.25rem;
+  margin: 0 0 0.25rem;
+  font-size: 1.35rem;
 }
 
 .animate-rise {

@@ -1,8 +1,9 @@
 export type AccessRequestPayload = {
-  query: string;
   contact_name: string;
-  contact_email: string;
-  contact_phone?: string;
+  contact_phone: string;
+  monitoring_object: string;
+  contact_email?: string;
+  query?: string;
   message?: string;
 };
 

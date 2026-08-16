@@ -10,9 +10,9 @@ from app.services.br_analytics.client import BrAnalyticsClient
 async def main() -> None:
     query = "creativityweek"
     print(f"Running preview for: {query}")
-    items = await BrAnalyticsClient().search_mentions(query)
-    print(f"Got {len(items)} items")
-    for item in items[:5]:
+    result = await BrAnalyticsClient().search_mentions(query)
+    print(f"Got {len(result.items)} items; weekly_count={result.weekly_count}")
+    for item in result.items[:5]:
         print("---")
         print(item.source, item.published_at)
         print(item.title)

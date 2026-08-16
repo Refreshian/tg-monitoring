@@ -1,15 +1,12 @@
 import { Link } from "react-router-dom";
+import { MonitoringRequestForm } from "@/features/access-request/MonitoringRequestForm";
 
 export function HomePage() {
   return (
     <>
       <section className="hero">
         <div className="hero__media" aria-hidden="true">
-          <img
-            src="/hero-dashboard.png"
-            alt=""
-            className="hero__image"
-          />
+          <img src="/hero-dashboard.png" alt="" className="hero__image" />
           <div className="hero__veil" />
         </div>
 
@@ -27,7 +24,7 @@ export function HomePage() {
               Попробовать предпросмотр
             </Link>
             <Link className="button button--ghost" to="/contact">
-              Связаться с нами
+              Оставить заявку
             </Link>
           </div>
         </div>
@@ -61,6 +58,12 @@ export function HomePage() {
           <Link className="button button--primary" to="/preview">
             Открыть предпросмотр
           </Link>
+        </div>
+      </section>
+
+      <section className="section" id="request">
+        <div className="container page__inner--narrow">
+          <MonitoringRequestForm title="Оставить заявку на мониторинг" />
         </div>
       </section>
     </>

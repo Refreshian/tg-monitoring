@@ -1,12 +1,16 @@
+import { MonitoringRequestForm } from "@/features/access-request/MonitoringRequestForm";
+
 export function ContactPage() {
   return (
     <section className="page">
       <div className="container page__inner page__inner--narrow">
         <h1>Контакты</h1>
         <p className="page__lead">
-          Напишите нам, чтобы подключить мониторинг или обсудить задачу для вашей компании
-          или агентства.
+          Оставьте заявку на мониторинг или напишите нам напрямую — обсудим задачу для вашей
+          компании или агентства.
         </p>
+
+        <MonitoringRequestForm />
 
         <ul className="contact-list">
           <li>

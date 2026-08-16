@@ -19,3 +19,7 @@ class PreviewResponse(BaseModel):
     query: str
     total: int
     items: list[MentionItem]
+    # Approximate access price for the visitor (BA Razovo tariff minus ~25–30%).
+    # Monthly volume is computed server-side and not shown in the UI yet.
+    estimated_price_rub: int | None = None
+    price_is_from: bool = False

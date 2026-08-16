@@ -10,4 +10,6 @@ export type PreviewResponse = {
   query: string;
   total: number;
   items: MentionItem[];
+  estimated_price_rub?: number | null;
+  price_is_from?: boolean;
 };

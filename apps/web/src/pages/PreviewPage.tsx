@@ -1,7 +1,8 @@
 import { FormEvent, useState } from "react";
 import { MentionList } from "@/features/preview/MentionList";
 import { PreviewSearchForm } from "@/features/preview/PreviewSearchForm";
-import { AccessRequestForm } from "@/features/access-request/AccessRequestForm";
+import { PriceEstimate } from "@/features/preview/PriceEstimate";
+import { MonitoringRequestForm } from "@/features/access-request/MonitoringRequestForm";
 import { previewSearch } from "@/lib/api/preview";
 import type { PreviewResponse } from "@/types/preview";
 
@@ -45,7 +46,17 @@ export function PreviewPage() {
         {result && (
           <>
             <MentionList result={result} />
-            <AccessRequestForm query={result.query} />
+            {result.estimated_price_rub != null && result.estimated_price_rub > 0 && (
+              <PriceEstimate
+                priceRub={result.estimated_price_rub}
+                priceIsFrom={Boolean(result.price_is_from)}
+              />
+            )}
+            <MonitoringRequestForm
+              title="Заявка на мониторинг"
+              initialObject={result.query}
+              query={result.query}
+            />
           </>
         )}
       </div>

@@ -4,11 +4,11 @@ from app.core.config import settings
 
 
 class BrAnalyticsSearch:
-    async def run_query(self, page: Page, query: str) -> str:
+    async def run_query(self, page: Page, query: str) -> tuple[str, str]:
         """
         Paste the search query into Brand Analytics keywords field,
         confirm keyword-check dialog if shown, click "Показать результаты",
-        return results HTML.
+        return (results HTML from #search_content, statistics HTML or "").
         """
         keywords = page.locator("#key_words_operator")
         await keywords.wait_for(state="visible")
@@ -62,7 +62,24 @@ class BrAnalyticsSearch:
                 "Screenshot saved to preview_debug.png"
             ) from None
 
-        return await page.locator("#search_content").inner_html()
+        # Right-hand volume stats load with (or just after) the feed.
+        try:
+            await page.locator("#statistics .stats .count").first.wait_for(
+                state="visible", timeout=15_000
+            )
+        except PlaywrightTimeoutError:
+            pass
+
+        results_html = await page.locator("#search_content").inner_html()
+        stats_html = ""
+        stats = page.locator("#statistics")
+        if await stats.count() > 0:
+            try:
+                stats_html = await stats.inner_html()
+            except PlaywrightTimeoutError:
+                stats_html = ""
+
+        return results_html, stats_html
 
     async def _confirm_keywords_dialog(self, page: Page) -> None:
         """Accept 'Проверка ключевых фраз' modal if Brand Analytics shows it."""

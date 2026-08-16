@@ -13,12 +13,39 @@ class Settings(BaseSettings):
     playwright_headless: bool = True
     playwright_timeout_ms: int = 90_000
 
+    # Visitor quote is BA "Разово" list price minus this ratio (kept in 25–30%).
+    price_quote_discount_ratio: float = 0.28
+    ba_tariffs_cache_days: int = 30
+
     database_url: str = "postgresql+asyncpg://tg_monitoring:tg_monitoring@localhost:5432/tg_monitoring"
     api_cors_origins: str = "http://localhost:5173"
+
+    # Lead notifications
+    leads_email_to: str = "monitoringsystem@bk.ru"
+    smtp_host: str = "smtp.mail.ru"
+    smtp_port: int = 465
+    smtp_username: str = "monitoringsystem@bk.ru"
+    smtp_password: str = ""
+    smtp_use_tls: bool = True
+    smtp_from: str = "monitoringsystem@bk.ru"
+
+    telegram_bot_token: str = ""
+    telegram_chat_id: str = ""
+    telegram_api_base: str = "https://api.telegram.org"
+    telegram_proxy: str = ""
+    telegram_force_ip: str = "149.154.167.220"
 
     @property
     def cors_origins(self) -> list[str]:
         return [origin.strip() for origin in self.api_cors_origins.split(",") if origin.strip()]
+
+    @property
+    def smtp_configured(self) -> bool:
+        return bool(self.smtp_host and self.smtp_username and self.smtp_password and self.leads_email_to)
+
+    @property
+    def telegram_configured(self) -> bool:
+        return bool(self.telegram_bot_token and self.telegram_chat_id)
 
     @property
     def login_url(self) -> str:

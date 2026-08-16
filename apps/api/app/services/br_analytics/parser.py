@@ -1,3 +1,4 @@
+import re
 from datetime import datetime
 
 from bs4 import BeautifulSoup
@@ -46,6 +47,36 @@ def parse_search_results(html: str) -> list[MentionItem]:
         )
 
     return items
+
+
+def parse_weekly_count(html: str) -> int | None:
+    """
+    Extract the 'За неделю' value from BA's right-hand statistics panel
+    (#statistics .stats .period_1 or label match).
+    """
+    soup = BeautifulSoup(html, "html.parser")
+    stats = soup.select_one("#statistics .stats") or soup.select_one(".stats")
+    if not stats:
+        return None
+
+    for block in stats.find_all("div", recursive=False):
+        labels = [p.get_text(" ", strip=True).lower() for p in block.find_all("p")]
+        if any("недел" in label for label in labels):
+            count_node = block.select_one(".count")
+            if count_node:
+                return _parse_count_text(count_node.get_text())
+
+    period_week = soup.select_one("#statistics .period_1 .count") or soup.select_one(
+        ".period_1 .count"
+    )
+    if period_week:
+        return _parse_count_text(period_week.get_text())
+    return None
+
+
+def _parse_count_text(value: str) -> int | None:
+    digits = re.sub(r"\D", "", value or "")
+    return int(digits) if digits else None
 
 
 def _parse_ba_date(value: str) -> datetime | None:
