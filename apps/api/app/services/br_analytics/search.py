@@ -4,11 +4,11 @@ from app.core.config import settings
 
 
 class BrAnalyticsSearch:
-    async def run_query(self, page: Page, query: str) -> tuple[str, str]:
+    async def run_query(self, page: Page, query: str) -> tuple[str, str, int | None]:
         """
         Paste the search query into Brand Analytics keywords field,
         confirm keyword-check dialog if shown, click "Показать результаты",
-        return (results HTML from #search_content, statistics HTML or "").
+        return (results HTML, statistics HTML, weekly count or None).
         """
         keywords = page.locator("#key_words_operator")
         await keywords.wait_for(state="visible")
@@ -62,10 +62,14 @@ class BrAnalyticsSearch:
                 "Screenshot saved to preview_debug.png"
             ) from None
 
-        # Right-hand volume stats load with (or just after) the feed.
+        # Right-hand volume stats: wait until "За неделю" appears (slot index varies).
         try:
-            await page.locator("#statistics .stats .count").first.wait_for(
-                state="visible", timeout=15_000
+            await page.wait_for_function(
+                """() => {
+                    const blocks = document.querySelectorAll('#statistics .stats > div');
+                    return [...blocks].some((b) => (b.innerText || '').toLowerCase().includes('недел'));
+                }""",
+                timeout=20_000,
             )
         except PlaywrightTimeoutError:
             pass
@@ -79,7 +83,31 @@ class BrAnalyticsSearch:
             except PlaywrightTimeoutError:
                 stats_html = ""
 
-        return results_html, stats_html
+        weekly_count = await self._read_weekly_count(page)
+        return results_html, stats_html, weekly_count
+
+    async def _read_weekly_count(self, page: Page) -> int | None:
+        """Read 'За неделю' from the live stats panel (more reliable than HTML alone)."""
+        try:
+            value = await page.evaluate(
+                """() => {
+                    const blocks = [...document.querySelectorAll('#statistics .stats > div')];
+                    for (const block of blocks) {
+                      const labels = [...block.querySelectorAll('p')]
+                        .map((p) => (p.innerText || '').trim().toLowerCase());
+                      if (!labels.some((t) => t.includes('недел'))) continue;
+                      const raw = block.querySelector('.count')?.innerText || '';
+                      const digits = raw.replace(/\\D/g, '');
+                      return digits ? Number(digits) : null;
+                    }
+                    return null;
+                }"""
+            )
+        except Exception:  # noqa: BLE001
+            return None
+        if isinstance(value, (int, float)) and value >= 0:
+            return int(value)
+        return None
 
     async def _confirm_keywords_dialog(self, page: Page) -> None:
         """Accept 'Проверка ключевых фраз' modal if Brand Analytics shows it."""

@@ -32,7 +32,11 @@ class BrAnalyticsClient:
         async with auth.session() as page:
             await auth.login(page)
             await topics.open_preview_theme(page)
-            results_html, stats_html = await search.run_query(page, query)
+            results_html, stats_html, weekly_from_page = await search.run_query(page, query)
             items = parse_search_results(results_html)
-            weekly = parse_weekly_count(stats_html) or parse_weekly_count(results_html)
+            weekly = (
+                weekly_from_page
+                or parse_weekly_count(stats_html)
+                or parse_weekly_count(results_html)
+            )
             return PreviewSearchResult(items=items, weekly_count=weekly)

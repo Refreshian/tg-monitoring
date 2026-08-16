@@ -22,6 +22,20 @@ def test_parse_weekly_count_from_statistics_panel() -> None:
     assert parse_weekly_count(html) == 19
 
 
+def test_parse_weekly_count_when_week_is_period_2() -> None:
+    """Live BA UI currently uses: сегодня / вчера / неделю."""
+    html = """
+    <aside>
+      <div class="stats">
+        <div class="period_0"><p class="count">4</p><p>За сегодня</p></div>
+        <div class="period_1"><p class="count">2</p><p>За вчера</p></div>
+        <div class="period_2"><p class="count">77</p><p>За неделю</p></div>
+      </div>
+    </aside>
+    """
+    assert parse_weekly_count(html) == 77
+
+
 def test_parse_weekly_count_with_spaced_digits() -> None:
     html = """
     <div class="stats">

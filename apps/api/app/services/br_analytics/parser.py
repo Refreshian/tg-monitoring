@@ -59,6 +59,7 @@ def parse_weekly_count(html: str) -> int | None:
     if not stats:
         return None
 
+    # Prefer label match: BA may put "За неделю" in period_1 or period_2 depending on UI.
     for block in stats.find_all("div", recursive=False):
         labels = [p.get_text(" ", strip=True).lower() for p in block.find_all("p")]
         if any("недел" in label for label in labels):
@@ -66,11 +67,6 @@ def parse_weekly_count(html: str) -> int | None:
             if count_node:
                 return _parse_count_text(count_node.get_text())
 
-    period_week = soup.select_one("#statistics .period_1 .count") or soup.select_one(
-        ".period_1 .count"
-    )
-    if period_week:
-        return _parse_count_text(period_week.get_text())
     return None
 
 
