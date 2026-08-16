@@ -8,6 +8,7 @@ from app.services.pricing import (
     estimate_monthly_from_weekly,
     quote_access_price,
 )
+from app.services.query_rewrite_service import QueryRewriteService
 
 logger = logging.getLogger("uvicorn.error")
 
@@ -17,9 +18,12 @@ _preview_lock = asyncio.Lock()
 
 class PreviewService:
     async def search(self, query: str) -> PreviewResponse:
+        rewrite = await QueryRewriteService().rewrite(query)
+        search_query = rewrite.query
+
         async with _preview_lock:
             client = BrAnalyticsClient()
-            result = await client.search_mentions(query)
+            result = await client.search_mentions(search_query)
 
         estimated_price_rub: int | None = None
         price_is_from = False
@@ -33,8 +37,10 @@ class PreviewService:
                 price_is_from = quote.price_is_from
 
         logger.info(
-            "preview query=%r items=%s weekly=%s monthly=%s price=%s",
-            query,
+            "preview original=%r query=%r changed=%s items=%s weekly=%s monthly=%s price=%s",
+            rewrite.original_query,
+            search_query,
+            rewrite.changed,
             len(result.items),
             weekly,
             monthly,
@@ -42,7 +48,10 @@ class PreviewService:
         )
 
         return PreviewResponse(
-            query=query,
+            query=search_query,
+            original_query=rewrite.original_query,
+            query_changed=rewrite.changed,
+            query_note=rewrite.note or None,
             total=len(result.items),
             items=result.items,
             estimated_price_rub=estimated_price_rub,

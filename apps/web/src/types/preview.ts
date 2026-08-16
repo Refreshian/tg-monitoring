@@ -8,6 +8,9 @@ export type MentionItem = {
 
 export type PreviewResponse = {
   query: string;
+  original_query?: string | null;
+  query_changed?: boolean;
+  query_note?: string | null;
   total: number;
   items: MentionItem[];
   estimated_price_rub?: number | null;

@@ -17,6 +17,9 @@ class PreviewRequest(BaseModel):
 
 class PreviewResponse(BaseModel):
     query: str
+    original_query: str | None = None
+    query_changed: bool = False
+    query_note: str | None = None
     total: int
     items: list[MentionItem]
     # Approximate access price for the visitor (BA Razovo tariff minus ~32%).

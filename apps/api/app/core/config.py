@@ -35,6 +35,12 @@ class Settings(BaseSettings):
     telegram_proxy: str = ""
     telegram_force_ip: str = "149.154.167.220"
 
+    # AITUNNEL (OpenAI-compatible) for BA query normalization
+    aitunnel_api_key: str = ""
+    aitunnel_base_url: str = "https://api.aitunnel.ru/v1"
+    aitunnel_model: str = "auto"
+    aitunnel_max_tokens: int = 800
+
     @property
     def cors_origins(self) -> list[str]:
         return [origin.strip() for origin in self.api_cors_origins.split(",") if origin.strip()]
@@ -46,6 +52,10 @@ class Settings(BaseSettings):
     @property
     def telegram_configured(self) -> bool:
         return bool(self.telegram_bot_token and self.telegram_chat_id)
+
+    @property
+    def aitunnel_configured(self) -> bool:
+        return bool(self.aitunnel_api_key and self.aitunnel_base_url)
 
     @property
     def login_url(self) -> str:

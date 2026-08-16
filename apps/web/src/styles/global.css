@@ -442,6 +442,43 @@ input:focus {
   margin-top: 1rem;
 }
 
+.query-rewrite {
+  margin-top: 1.5rem;
+  padding: 1.1rem 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.query-rewrite__title {
+  margin: 0 0 0.65rem;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+}
+
+.query-rewrite__line {
+  margin: 0.35rem 0;
+  color: var(--text-muted);
+}
+
+.query-rewrite__label {
+  color: var(--text);
+  font-weight: 600;
+  margin-right: 0.35rem;
+}
+
+.query-rewrite__line code {
+  color: var(--accent);
+  font-family: var(--font-body);
+  font-size: 1rem;
+}
+
+.query-rewrite__note {
+  margin: 0.65rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
 .mention-list h2 {
   margin: 0 0 1rem;
   font-size: 1.25rem;
