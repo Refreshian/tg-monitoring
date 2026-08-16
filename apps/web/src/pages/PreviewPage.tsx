@@ -45,13 +45,13 @@ export function PreviewPage() {
         {error && <p className="error">{error}</p>}
         {result && (
           <>
-            <MentionList result={result} />
             {result.estimated_price_rub != null && result.estimated_price_rub > 0 && (
               <PriceEstimate
                 priceRub={result.estimated_price_rub}
                 priceIsFrom={Boolean(result.price_is_from)}
               />
             )}
+            <MentionList result={result} />
             <MonitoringRequestForm
               title="Заявка на мониторинг"
               initialObject={result.query}
