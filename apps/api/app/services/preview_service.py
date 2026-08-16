@@ -9,7 +9,7 @@ from app.services.pricing import (
     quote_access_price,
 )
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("uvicorn.error")
 
 # Brand Analytics preview edits one shared theme — serialize searches.
 _preview_lock = asyncio.Lock()
@@ -24,19 +24,20 @@ class PreviewService:
         estimated_price_rub: int | None = None
         price_is_from = False
         weekly = result.weekly_count
+        monthly = estimate_monthly_from_weekly(weekly) if weekly else None
         if weekly is not None and weekly > 0:
-            monthly = estimate_monthly_from_weekly(weekly)
             tariffs = await ensure_fresh_tariffs()
-            quote = quote_access_price(monthly, tariffs=tariffs)
+            quote = quote_access_price(monthly or 0, tariffs=tariffs)
             if quote is not None:
                 estimated_price_rub = quote.quote_price_rub
                 price_is_from = quote.price_is_from
 
         logger.info(
-            "preview query=%r items=%s weekly=%s price=%s",
+            "preview query=%r items=%s weekly=%s monthly=%s price=%s",
             query,
             len(result.items),
             weekly,
+            monthly,
             estimated_price_rub,
         )
 

@@ -2,6 +2,21 @@ from playwright.async_api import Page, TimeoutError as PlaywrightTimeoutError
 
 from app.core.config import settings
 
+_READ_WEEKLY_JS = """() => {
+  const blocks = [...document.querySelectorAll('#statistics .stats > div')];
+  for (const block of blocks) {
+    const labelEl = [...block.querySelectorAll('p')].find((p) => {
+      const t = (p.innerText || '').trim().toLowerCase();
+      return t.includes('недел') && !p.classList.contains('count');
+    });
+    if (!labelEl) continue;
+    const raw = block.querySelector('p.count, .count')?.innerText || '';
+    const digits = raw.replace(/\\D/g, '');
+    if (digits) return Number(digits);
+  }
+  return null;
+}"""
+
 
 class BrAnalyticsSearch:
     async def run_query(self, page: Page, query: str) -> tuple[str, str, int | None]:
@@ -62,47 +77,36 @@ class BrAnalyticsSearch:
                 "Screenshot saved to preview_debug.png"
             ) from None
 
-        # Right-hand volume stats: wait until "За неделю" appears (slot index varies).
+        # Wait until right-hand "За неделю" shows a numeric count.
         try:
             await page.wait_for_function(
-                """() => {
-                    const blocks = document.querySelectorAll('#statistics .stats > div');
-                    return [...blocks].some((b) => (b.innerText || '').toLowerCase().includes('недел'));
-                }""",
-                timeout=20_000,
+                f"() => {{ const v = ({_READ_WEEKLY_JS})(); return v != null; }}",
+                timeout=30_000,
             )
         except PlaywrightTimeoutError:
             pass
 
-        results_html = await page.locator("#search_content").inner_html()
+        weekly_count: int | None = None
         stats_html = ""
-        stats = page.locator("#statistics")
-        if await stats.count() > 0:
-            try:
-                stats_html = await stats.inner_html()
-            except PlaywrightTimeoutError:
-                stats_html = ""
+        results_html = await page.locator("#search_content").inner_html()
+        for _ in range(8):
+            stats = page.locator("#statistics")
+            if await stats.count() > 0:
+                try:
+                    stats_html = await stats.inner_html()
+                except PlaywrightTimeoutError:
+                    stats_html = ""
+            weekly_count = await self._read_weekly_count(page)
+            if weekly_count is not None:
+                break
+            await page.wait_for_timeout(700)
 
-        weekly_count = await self._read_weekly_count(page)
         return results_html, stats_html, weekly_count
 
     async def _read_weekly_count(self, page: Page) -> int | None:
-        """Read 'За неделю' from the live stats panel (more reliable than HTML alone)."""
+        """Read only the right-hand stats value labeled 'За неделю'."""
         try:
-            value = await page.evaluate(
-                """() => {
-                    const blocks = [...document.querySelectorAll('#statistics .stats > div')];
-                    for (const block of blocks) {
-                      const labels = [...block.querySelectorAll('p')]
-                        .map((p) => (p.innerText || '').trim().toLowerCase());
-                      if (!labels.some((t) => t.includes('недел'))) continue;
-                      const raw = block.querySelector('.count')?.innerText || '';
-                      const digits = raw.replace(/\\D/g, '');
-                      return digits ? Number(digits) : null;
-                    }
-                    return null;
-                }"""
-            )
+            value = await page.evaluate(_READ_WEEKLY_JS)
         except Exception:  # noqa: BLE001
             return None
         if isinstance(value, (int, float)) and value >= 0:

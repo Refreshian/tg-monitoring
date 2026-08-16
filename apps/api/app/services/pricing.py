@@ -81,8 +81,9 @@ def quote_access_price(
     # Clamp to the 25–30% band requested for visitor quotes.
     ratio = min(0.30, max(0.25, ratio))
     raw = chosen.price_rub * (1.0 - ratio)
-    quote = int(round(raw / 1000.0) * 1000)
-    quote = max(1000, quote)
+    # Nearest 100 keeps quotes readable while staying close to BA * (1 - discount).
+    quote = int(round(raw / 100.0) * 100)
+    quote = max(100, quote)
 
     return PriceQuote(
         list_price_rub=chosen.price_rub,
@@ -162,7 +163,10 @@ def _read_cache(*, allow_stale: bool = False) -> list[Tariff] | None:
         if expired and not allow_stale:
             return None
         tariffs = [_tariff_from_dict(item) for item in payload["tariffs"]]
-        return tariffs or None
+        if not tariffs or not _looks_like_razovo(tariffs):
+            logger.warning("Ignoring BA tariffs cache with non-Razovo prices")
+            return None
+        return tariffs
     except Exception:  # noqa: BLE001
         logger.warning("Invalid BA tariffs cache at %s", path)
         return None
@@ -208,7 +212,17 @@ async def _scrape_razovo_tariffs() -> list[Tariff]:
             await page.goto(url, wait_until="domcontentloaded")
             await page.get_by_role("button", name="Разово").click()
             await page.wait_for_selector(".plan-messages-count", timeout=30_000)
-            await page.wait_for_timeout(800)
+            # Wait until Razovo list prices appear (Starter is ~45 500, not yearly ~31 500).
+            await page.wait_for_function(
+                """() => {
+                    const prices = [...document.querySelectorAll('.plan-price')]
+                      .map((el) => Number((el.innerText || '').replace(/\\D/g, '')))
+                      .filter((n) => n > 0);
+                    return prices.some((n) => n >= 40000 && n <= 60000);
+                }""",
+                timeout=15_000,
+            )
+            await page.wait_for_timeout(500)
             raw_plans = await page.evaluate(
                 """() => [...document.querySelectorAll('.plan-messages')].map((el) => {
                     let card = el.parentElement;
@@ -234,9 +248,25 @@ async def _scrape_razovo_tariffs() -> list[Tariff]:
         messages = _parse_int(item.get("messages"))
         if not name or price is None or messages is None:
             continue
-        # Skip "от N" premium-style cards without a fixed package size if needed —
-        # Razovo currently returns four fixed packages.
+        # Skip open-ended premium "от N" packages for auto-quoting.
+        if "премиум" in name.lower():
+            continue
         tariffs.append(Tariff(name=name, messages_per_month=messages, price_rub=price))
 
     tariffs.sort(key=lambda t: t.messages_per_month)
+    if not _looks_like_razovo(tariffs):
+        logger.warning("Scraped tariffs do not look like Razovo prices: %s", tariffs)
+        return []
     return tariffs
+
+
+def _looks_like_razovo(tariffs: list[Tariff]) -> bool:
+    """Reject yearly/regular discounted prices accidentally scraped from the price page."""
+    if not tariffs:
+        return False
+    starter = next((t for t in tariffs if "стартовый" in t.name.lower() and "плюс" not in t.name.lower()), None)
+    if starter is None:
+        starter = tariffs[0]
+    # Razovo Starter is ~45 500; regular yearly is ~31 500.
+    return starter.price_rub >= 40_000
+

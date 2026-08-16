@@ -51,26 +51,25 @@ def parse_search_results(html: str) -> list[MentionItem]:
 
 def parse_weekly_count(html: str) -> int | None:
     """
-    Extract the 'За неделю' value from BA's right-hand statistics panel.
-    Falls back to total_title like 'Найдено N сообщений за 7 дней'.
+    Extract the 'За неделю' value from BA's right-hand statistics panel only.
+    Do not use .total_title — it can show a different (much larger) volume.
     """
     soup = BeautifulSoup(html, "html.parser")
     stats = soup.select_one("#statistics .stats") or soup.select_one(".stats")
-    if stats:
-        for block in stats.find_all("div", recursive=False):
-            labels = [p.get_text(" ", strip=True).lower() for p in block.find_all("p")]
-            if any("недел" in label for label in labels):
-                count_node = block.select_one(".count")
-                if count_node:
-                    return _parse_count_text(count_node.get_text())
+    if not stats:
+        return None
 
-    title = soup.select_one(".total_title")
-    if title:
-        text = title.get_text(" ", strip=True).lower()
-        # e.g. "Найдено 236 сообщений за 7 дней"
-        match = re.search(r"найдено\s+([\d\s]+)\s+сообщ", text)
-        if match and ("7 дн" in text or "недел" in text):
-            return _parse_count_text(match.group(1))
+    for block in stats.find_all("div", recursive=False):
+        labels = []
+        for p in block.find_all("p"):
+            classes = p.get("class") or []
+            if "count" in classes:
+                continue
+            labels.append(p.get_text(" ", strip=True).lower())
+        if any("недел" in label for label in labels):
+            count_node = block.select_one("p.count, .count")
+            if count_node:
+                return _parse_count_text(count_node.get_text())
 
     return None
 
