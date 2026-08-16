@@ -406,20 +406,28 @@ input:focus {
 
 .price-estimate {
   margin-top: 1.5rem;
-  padding: 1.15rem 1.25rem;
-  border: 1px solid rgba(76, 201, 240, 0.35);
+  padding: 1.25rem 1.35rem 1.35rem;
+  border: 1px solid rgba(76, 201, 240, 0.45);
   border-radius: 1rem;
   background: linear-gradient(
     135deg,
-    rgba(76, 201, 240, 0.12),
-    rgba(123, 97, 255, 0.14)
+    rgba(76, 201, 240, 0.16),
+    rgba(123, 97, 255, 0.18)
   );
+}
+
+.price-estimate__title {
+  margin: 0 0 0.55rem;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text);
 }
 
 .price-estimate__text {
   margin: 0;
   font-family: var(--font-display);
-  font-size: 1.2rem;
+  font-size: 1.15rem;
   line-height: 1.45;
   color: var(--text);
 }
@@ -428,6 +436,10 @@ input:focus {
   color: var(--accent);
   font-weight: 700;
   white-space: nowrap;
+}
+
+.price-estimate__cta {
+  margin-top: 1rem;
 }
 
 .mention-list h2 {

@@ -48,7 +48,7 @@ export function MonitoringRequestForm({
   }
 
   return (
-    <form className="access-form" onSubmit={handleSubmit}>
+    <form id="monitoring-request" className="access-form" onSubmit={handleSubmit}>
       <h2>{title}</h2>
 
       <label htmlFor="monitoring-name">Имя</label>

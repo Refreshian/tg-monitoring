@@ -51,21 +51,26 @@ def parse_search_results(html: str) -> list[MentionItem]:
 
 def parse_weekly_count(html: str) -> int | None:
     """
-    Extract the 'За неделю' value from BA's right-hand statistics panel
-    (#statistics .stats .period_1 or label match).
+    Extract the 'За неделю' value from BA's right-hand statistics panel.
+    Falls back to total_title like 'Найдено N сообщений за 7 дней'.
     """
     soup = BeautifulSoup(html, "html.parser")
     stats = soup.select_one("#statistics .stats") or soup.select_one(".stats")
-    if not stats:
-        return None
+    if stats:
+        for block in stats.find_all("div", recursive=False):
+            labels = [p.get_text(" ", strip=True).lower() for p in block.find_all("p")]
+            if any("недел" in label for label in labels):
+                count_node = block.select_one(".count")
+                if count_node:
+                    return _parse_count_text(count_node.get_text())
 
-    # Prefer label match: BA may put "За неделю" in period_1 or period_2 depending on UI.
-    for block in stats.find_all("div", recursive=False):
-        labels = [p.get_text(" ", strip=True).lower() for p in block.find_all("p")]
-        if any("недел" in label for label in labels):
-            count_node = block.select_one(".count")
-            if count_node:
-                return _parse_count_text(count_node.get_text())
+    title = soup.select_one(".total_title")
+    if title:
+        text = title.get_text(" ", strip=True).lower()
+        # e.g. "Найдено 236 сообщений за 7 дней"
+        match = re.search(r"найдено\s+([\d\s]+)\s+сообщ", text)
+        if match and ("7 дн" in text or "недел" in text):
+            return _parse_count_text(match.group(1))
 
     return None
 
