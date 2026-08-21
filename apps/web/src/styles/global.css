@@ -424,6 +424,11 @@ input:focus {
   color: var(--text);
 }
 
+.price-estimate__query {
+  color: var(--accent);
+  word-break: break-word;
+}
+
 .price-estimate__text {
   margin: 0;
   font-family: var(--font-display);

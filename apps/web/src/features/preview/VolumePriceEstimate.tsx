@@ -1,12 +1,14 @@
 import { useEffect, useRef } from "react";
 
 type VolumePriceEstimateProps = {
+  query: string;
   weeklyCount?: number | null;
   monthlyEstimate?: number | null;
   priceRub?: number | null;
   priceIsFrom?: boolean;
-  tariffName?: string | null;
 };
+
+const QUERY_TITLE_MAX = 72;
 
 function formatCount(value: number): string {
   return new Intl.NumberFormat("ru-RU").format(value);
@@ -16,18 +18,27 @@ function formatRub(value: number): string {
   return new Intl.NumberFormat("ru-RU").format(value);
 }
 
+function shortenQuery(query: string, max = QUERY_TITLE_MAX): string {
+  const trimmed = query.trim().replace(/\s+/g, " ");
+  if (trimmed.length <= max) {
+    return trimmed;
+  }
+  return `${trimmed.slice(0, max - 1).trimEnd()}…`;
+}
+
 export function VolumePriceEstimate({
+  query,
   weeklyCount,
   monthlyEstimate,
   priceRub,
   priceIsFrom = false,
-  tariffName,
 }: VolumePriceEstimateProps) {
   const ref = useRef<HTMLElement>(null);
   const hasWeekly = weeklyCount != null && weeklyCount >= 0;
   const hasMonthly = monthlyEstimate != null && monthlyEstimate > 0;
   const hasPrice = priceRub != null && priceRub > 0;
   const prefix = priceIsFrom ? "от ~" : "~";
+  const queryLabel = shortenQuery(query);
 
   useEffect(() => {
     ref.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -43,7 +54,10 @@ export function VolumePriceEstimate({
   return (
     <section className="price-estimate" ref={ref} aria-live="polite">
       <h2 className="price-estimate__title">
-        Оценка объёма упоминаний и ориентировочная стоимость доступа
+        Оценка объёма упоминаний и ориентировочная стоимость доступа по запросу{" "}
+        <span className="price-estimate__query" title={query.trim()}>
+          «{queryLabel}»
+        </span>
       </h2>
 
       {hasWeekly ? (
@@ -54,11 +68,6 @@ export function VolumePriceEstimate({
           {hasMonthly ? (
             <li>
               Оценка за месяц: <strong>~{formatCount(monthlyEstimate)} упоминаний</strong>
-            </li>
-          ) : null}
-          {tariffName ? (
-            <li>
-              Подходящий тариф: <strong>{tariffName}</strong>
             </li>
           ) : null}
         </ul>

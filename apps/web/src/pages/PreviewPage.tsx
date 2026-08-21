@@ -58,11 +58,11 @@ export function PreviewPage() {
               />
             )}
             <VolumePriceEstimate
+              query={result.query}
               weeklyCount={result.weekly_count}
               monthlyEstimate={result.estimated_monthly_messages}
               priceRub={result.estimated_price_rub}
               priceIsFrom={Boolean(result.price_is_from)}
-              tariffName={result.tariff_name}
             />
             <DemoMentionFeed />
             <MonitoringRequestForm
