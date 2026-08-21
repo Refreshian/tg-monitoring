@@ -442,6 +442,66 @@ input:focus {
   margin-top: 1rem;
 }
 
+.price-estimate__stats {
+  list-style: none;
+  margin: 0 0 0.85rem;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  line-height: 1.4;
+  color: var(--text);
+}
+
+.price-estimate__stats strong {
+  color: var(--accent);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.demo-feed {
+  margin-top: 1.75rem;
+}
+
+.demo-feed__title {
+  margin: 0 0 0.65rem;
+  font-size: 1.25rem;
+}
+
+.demo-feed__disclaimer {
+  margin: 0 0 1rem;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.demo-feed__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.demo-feed__card {
+  position: relative;
+  padding-right: 4.5rem;
+}
+
+.demo-feed__badge {
+  position: absolute;
+  top: 1rem;
+  right: 0;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border: 1px solid var(--line);
+  border-radius: 0.4rem;
+  padding: 0.15rem 0.45rem;
+}
+
 .query-rewrite {
   margin-top: 1.5rem;
   padding: 1.1rem 1.25rem;

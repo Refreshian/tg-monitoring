@@ -20,9 +20,12 @@ class PreviewResponse(BaseModel):
     original_query: str | None = None
     query_changed: bool = False
     query_note: str | None = None
-    total: int
-    items: list[MentionItem]
-    # Approximate access price for the visitor (BA monthly Regular tariff minus discount).
-    # Monthly volume is computed server-side and not shown in the UI yet.
+    # Public preview returns volume + price only (no BA search snippets).
+    weekly_count: int | None = None
+    estimated_monthly_messages: int | None = None
     estimated_price_rub: int | None = None
     price_is_from: bool = False
+    tariff_name: str | None = None
+    # Kept empty for compatibility; real snippets are not exposed publicly.
+    total: int = 0
+    items: list[MentionItem] = Field(default_factory=list)
