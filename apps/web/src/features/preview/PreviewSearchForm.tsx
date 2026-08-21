@@ -25,7 +25,7 @@ export function PreviewSearchForm({
         required
       />
       <button className="button button--primary" type="submit" disabled={loading}>
-        {loading ? "Ищем упоминания..." : "Показать результаты"}
+        {loading ? "Оцениваем объём..." : "Оценить объём и стоимость"}
       </button>
     </form>
   );

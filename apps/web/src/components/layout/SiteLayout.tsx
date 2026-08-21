@@ -13,7 +13,7 @@ export function SiteLayout() {
               Главная
             </NavLink>
             <NavLink to="/services">Услуги</NavLink>
-            <NavLink to="/preview">Предпросмотр</NavLink>
+            <NavLink to="/preview">Оценка</NavLink>
             <NavLink to="/contact">Контакты</NavLink>
           </nav>
         </div>
