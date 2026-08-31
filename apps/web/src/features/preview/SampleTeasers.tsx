@@ -28,11 +28,11 @@ export function SampleTeasers({ teasers }: SampleTeasersProps) {
 
   return (
     <section className="sample-teasers">
-      <h2 className="sample-teasers__title">Найденные упоминания (без текста на сайте)</h2>
+      <h2 className="sample-teasers__title">Найденные упоминания</h2>
       <p className="sample-teasers__note">
         По вашему запросу есть сообщения в источниках — преимущественно VK, если он есть в
-        выдаче. Тексты не показываем на открытой странице: ниже источник и ссылка. Полные
-        примеры можно получить на email (10 сообщений).
+        выдаче. Некоторые примеры можно получить на email, полный сбор — при подключении
+        подписки.
       </p>
       <ul className="sample-teasers__list">
         {teasers.map((teaser, index) => {
