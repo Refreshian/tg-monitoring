@@ -11,10 +11,13 @@ from pathlib import Path
 
 from app.core.config import settings
 from app.schemas.preview import MentionItem, MentionTeaser
+from app.services.preview_sample_selection import (
+    EMAIL_SAMPLE_COUNT,
+    pick_delivery_items,
+    pick_teaser_items,
+)
 
 logger = logging.getLogger(__name__)
-
-SAMPLE_COUNT = 3
 
 
 @dataclass
@@ -22,6 +25,7 @@ class PreviewSamplesBundle:
     token: str
     query: str
     items: list[MentionItem]
+    teaser_items: list[MentionItem]
     created_at: datetime
     emails_sent: list[str]
 
@@ -36,7 +40,7 @@ class PreviewSamplesBundle:
                 url=item.url,
                 published_at=item.published_at,
             )
-            for item in self.items
+            for item in self.teaser_items
         ]
 
 
@@ -51,17 +55,19 @@ def _bundle_path(token: str) -> Path:
     return _cache_dir() / f"{safe}.json"
 
 
-def store_samples(query: str, items: list[MentionItem]) -> str | None:
-    """Persist up to SAMPLE_COUNT items and return a public token."""
-    trimmed = items[:SAMPLE_COUNT]
-    if not trimmed:
+def store_samples(query: str, pool: list[MentionItem]) -> str | None:
+    """Persist delivery + teaser samples and return a public token."""
+    delivery = pick_delivery_items(pool, EMAIL_SAMPLE_COUNT)
+    teasers = pick_teaser_items(pool)
+    if not delivery and not teasers:
         return None
 
     token = secrets.token_urlsafe(24)
     bundle = PreviewSamplesBundle(
         token=token,
         query=query,
-        items=trimmed,
+        items=delivery,
+        teaser_items=teasers,
         created_at=datetime.now(timezone.utc),
         emails_sent=[],
     )
@@ -112,6 +118,7 @@ def _write_bundle(bundle: PreviewSamplesBundle) -> None:
         "created_at": bundle.created_at.isoformat(),
         "emails_sent": bundle.emails_sent,
         "items": [item.model_dump(mode="json") for item in bundle.items],
+        "teaser_items": [item.model_dump(mode="json") for item in bundle.teaser_items],
     }
     _bundle_path(bundle.token).write_text(
         json.dumps(payload, ensure_ascii=False, indent=2),
@@ -125,10 +132,16 @@ def _read_bundle(path: Path) -> PreviewSamplesBundle:
     if created_at.tzinfo is None:
         created_at = created_at.replace(tzinfo=timezone.utc)
     items = [MentionItem.model_validate(item) for item in payload["items"]]
+    teaser_raw = payload.get("teaser_items")
+    if teaser_raw:
+        teaser_items = [MentionItem.model_validate(item) for item in teaser_raw]
+    else:
+        teaser_items = pick_teaser_items(items)
     return PreviewSamplesBundle(
         token=payload["token"],
         query=payload["query"],
         items=items,
+        teaser_items=teaser_items,
         created_at=created_at,
         emails_sent=list(payload.get("emails_sent") or []),
     )

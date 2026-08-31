@@ -7,7 +7,7 @@ from app.services.br_analytics.auth import BrAnalyticsAuth
 from app.services.br_analytics.parser import parse_search_results, parse_weekly_count
 from app.services.br_analytics.search import BrAnalyticsSearch
 from app.services.br_analytics.topics import BrAnalyticsTopics
-from app.services.preview_samples_cache import SAMPLE_COUNT
+from app.services.preview_sample_selection import PARSE_POOL_LIMIT
 
 
 @dataclass
@@ -22,7 +22,7 @@ class BrAnalyticsClient:
     1. Logs into brandanalytics.ru
     2. Opens the measurement theme editor (fallback theme «Энергострой»)
     3. Inserts the user search query and clicks "Показать результаты"
-    4. Reads weekly volume and up to SAMPLE_COUNT snippets for private delivery (email / magic link)
+    4. Reads weekly volume and parses a pool of snippets for private delivery
     """
 
     async def search_mentions(self, query: str) -> PreviewSearchResult:
@@ -34,7 +34,7 @@ class BrAnalyticsClient:
             await auth.login(page)
             await topics.open_preview_theme(page)
             results_html, stats_html, weekly_from_page = await search.run_query(page, query)
-            items = parse_search_results(results_html)[:SAMPLE_COUNT]
+            items = parse_search_results(results_html)[:PARSE_POOL_LIMIT]
             weekly = (
                 weekly_from_page
                 or parse_weekly_count(stats_html)
