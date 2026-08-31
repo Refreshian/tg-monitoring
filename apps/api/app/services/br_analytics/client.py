@@ -17,7 +17,7 @@ class BrAnalyticsClient:
     """
     High-level client that:
     1. Logs into brandanalytics.ru
-    2. Creates a new theme or edits fallback theme when slots are full
+    2. Opens the measurement theme editor (fallback theme «Энергострой»)
     3. Inserts the user search query and clicks "Показать результаты"
     4. Reads weekly volume from the preview panel (snippets are not scraped for public use)
     """
