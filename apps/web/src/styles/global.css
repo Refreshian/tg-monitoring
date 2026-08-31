@@ -507,6 +507,107 @@ input:focus {
   padding: 0.15rem 0.45rem;
 }
 
+.sample-teasers {
+  margin-top: 1.75rem;
+}
+
+.sample-teasers__title {
+  margin: 0 0 0.65rem;
+  font-size: 1.25rem;
+}
+
+.sample-teasers__note {
+  margin: 0 0 1rem;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.sample-teasers__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.sample-teaser-card {
+  padding: 1rem 0;
+  border-top: 1px solid var(--line);
+}
+
+.sample-teaser-card__source {
+  margin: 0 0 0.35rem;
+  color: var(--accent);
+  font-size: 0.9rem;
+}
+
+.sample-teaser-card__date {
+  margin: 0 0 0.35rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.sample-teaser-card__hint {
+  margin: 0 0 0.5rem;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.sample-teaser-card__no-link {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.samples-email-form {
+  margin-top: 1.75rem;
+  padding: 1.25rem 1.35rem;
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.samples-email-form__title {
+  margin: 0 0 0.5rem;
+  font-size: 1.2rem;
+}
+
+.samples-email-form__lead {
+  margin: 0 0 1rem;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.samples-email-form__form label {
+  display: block;
+  margin-bottom: 0.35rem;
+}
+
+.samples-email-form__consent {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  margin: 0.75rem 0 1rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.samples-email-form__consent input {
+  margin-top: 0.2rem;
+}
+
+.samples-page__note,
+.samples-page__expires {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.samples-page__list {
+  margin-top: 1rem;
+}
+
 .query-rewrite {
   margin-top: 1.5rem;
   padding: 1.1rem 1.25rem;

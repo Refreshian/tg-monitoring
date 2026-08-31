@@ -43,6 +43,9 @@ class Settings(BaseSettings):
     aitunnel_model: str = "auto"
     aitunnel_max_tokens: int = 800
 
+    public_site_url: str = "https://tg-monitoring.online"
+    preview_samples_ttl_hours: int = 72
+
     @property
     def cors_origins(self) -> list[str]:
         return [origin.strip() for origin in self.api_cors_origins.split(",") if origin.strip()]

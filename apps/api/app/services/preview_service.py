@@ -3,6 +3,7 @@ import logging
 
 from app.schemas.preview import PreviewResponse
 from app.services.br_analytics.client import BrAnalyticsClient
+from app.services.preview_samples_cache import get_bundle, store_samples
 from app.services.pricing import (
     ensure_fresh_tariffs,
     estimate_monthly_from_weekly,
@@ -25,6 +26,9 @@ class PreviewService:
             client = BrAnalyticsClient()
             result = await client.search_mentions(search_query)
 
+        sample_token = store_samples(search_query, result.sample_items)
+        bundle = get_bundle(sample_token) if sample_token else None
+
         estimated_price_rub: int | None = None
         price_is_from = False
         tariff_name: str | None = None
@@ -39,14 +43,16 @@ class PreviewService:
                 tariff_name = quote.tariff_name
 
         logger.info(
-            "preview original=%r query=%r changed=%s weekly=%s monthly=%s price=%s tariff=%s",
+            "preview original=%r query=%r changed=%s weekly=%s monthly=%s price=%s "
+            "samples=%s token=%s",
             rewrite.original_query,
             search_query,
             rewrite.changed,
             weekly,
             monthly,
             estimated_price_rub,
-            tariff_name,
+            len(result.sample_items),
+            sample_token,
         )
 
         return PreviewResponse(
@@ -59,6 +65,12 @@ class PreviewService:
             estimated_price_rub=estimated_price_rub,
             price_is_from=price_is_from,
             tariff_name=tariff_name,
+            sample_token=sample_token,
+            samples_available=sample_token is not None,
+            teasers=bundle.teasers() if bundle else [],
             total=0,
             items=[],
         )
+
+    def get_samples_by_token(self, token: str):
+        return get_bundle(token)

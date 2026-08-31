@@ -7,6 +7,7 @@ from fastapi import APIRouter, HTTPException
 
 from app.schemas.access_request import AccessRequestCreate, AccessRequestRead
 from app.services.email_service import send_monitoring_request_email
+from app.services.preview_samples_delivery import deliver_preview_samples
 from app.services.telegram_service import send_monitoring_request_telegram
 
 logger = logging.getLogger(__name__)
@@ -42,6 +43,16 @@ async def create_access_request(payload: AccessRequestCreate) -> AccessRequestRe
     except Exception:  # noqa: BLE001
         logger.exception("Failed to send Telegram notification for request %s", request_id)
         errors.append("telegram")
+
+    if payload.sample_token and payload.contact_email:
+        try:
+            await deliver_preview_samples(payload.sample_token, str(payload.contact_email))
+        except Exception:  # noqa: BLE001
+            logger.exception(
+                "Failed to auto-send preview samples for request %s to %s",
+                request_id,
+                payload.contact_email,
+            )
 
     if errors:
         channels = " и ".join(errors)

@@ -1,9 +1,11 @@
 import { FormEvent, useState } from "react";
-import { DemoMentionFeed } from "@/features/preview/DemoMentionFeed";
 import { PreviewSearchForm } from "@/features/preview/PreviewSearchForm";
+import { PreviewSamplesEmailForm } from "@/features/preview/PreviewSamplesEmailForm";
+import { SampleTeasers } from "@/features/preview/SampleTeasers";
 import { VolumePriceEstimate } from "@/features/preview/VolumePriceEstimate";
 import { QueryRewriteNotice } from "@/features/preview/QueryRewriteNotice";
 import { MonitoringRequestForm } from "@/features/access-request/MonitoringRequestForm";
+import { DemoMentionFeed } from "@/features/preview/DemoMentionFeed";
 import { previewSearch } from "@/lib/api/preview";
 import type { PreviewResponse } from "@/types/preview";
 
@@ -30,6 +32,8 @@ export function PreviewPage() {
     }
   }
 
+  const hasTeasers = Boolean(result?.samples_available && result.teasers && result.teasers.length > 0);
+
   return (
     <section className="page">
       <div className="container page__inner page__inner--narrow">
@@ -37,7 +41,7 @@ export function PreviewPage() {
         <p className="page__lead">
           Введите поисковый запрос обычным языком — при необходимости мы уточним его под правила
           поиска и покажем оценку объёма упоминаний и ориентировочную стоимость доступа. Тексты
-          реальной выдачи на сайте не публикуются.
+          сообщений на открытой странице не публикуются — их можно получить на email.
         </p>
 
         <PreviewSearchForm
@@ -64,12 +68,22 @@ export function PreviewPage() {
               priceRub={result.estimated_price_rub}
               priceIsFrom={Boolean(result.price_is_from)}
             />
-            <DemoMentionFeed />
+            {hasTeasers ? (
+              <>
+                <SampleTeasers teasers={result.teasers ?? []} />
+                {result.sample_token ? (
+                  <PreviewSamplesEmailForm sampleToken={result.sample_token} />
+                ) : null}
+              </>
+            ) : (
+              <DemoMentionFeed />
+            )}
             <MonitoringRequestForm
               key={result.query}
               title="Заявка на мониторинг"
               initialObject={result.query}
               query={result.query}
+              sampleToken={result.sample_token ?? undefined}
             />
           </>
         )}
