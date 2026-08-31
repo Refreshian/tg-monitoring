@@ -30,9 +30,8 @@ export function SampleTeasers({ teasers }: SampleTeasersProps) {
     <section className="sample-teasers">
       <h2 className="sample-teasers__title">Найденные упоминания</h2>
       <p className="sample-teasers__note">
-        По вашему запросу есть сообщения в источниках — преимущественно VK, если он есть в
-        выдаче. Некоторые примеры можно получить на email, полный сбор — при подключении
-        подписки.
+        По вашему запросу есть сообщения в источниках. Некоторые примеры можно получить на
+        email, полный сбор — при подключении подписки.
       </p>
       <ul className="sample-teasers__list">
         {teasers.map((teaser, index) => {

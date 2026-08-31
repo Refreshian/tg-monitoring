@@ -31,8 +31,8 @@ export function PreviewSamplesEmailForm({ sampleToken }: PreviewSamplesEmailForm
     <section className="samples-email-form">
       <h2 className="samples-email-form__title">Получить 10 примеров на email</h2>
       <p className="samples-email-form__lead">
-        Отправим до десяти примеров упоминаний по вашему запросу (преимущественно из VK, если
-        есть в выдаче) и ссылку для просмотра на сайте.
+        Отправим до десяти примеров упоминаний по вашему запросу и ссылку для просмотра на
+        сайте.
       </p>
       <form className="samples-email-form__form" onSubmit={handleSubmit}>
         <label htmlFor="samples-email">Email</label>
