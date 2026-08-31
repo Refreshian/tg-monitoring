@@ -384,7 +384,7 @@ img {
 }
 
 textarea,
-input {
+input:not([type="checkbox"]):not([type="radio"]) {
   width: 100%;
   padding: 0.85rem 1rem;
   border: 1px solid var(--line);
@@ -392,6 +392,12 @@ input {
   font: inherit;
   color: var(--text);
   background: rgba(255, 255, 255, 0.04);
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  width: auto;
+  flex-shrink: 0;
 }
 
 textarea:focus,
@@ -579,18 +585,22 @@ input:focus {
   line-height: 1.45;
 }
 
-.samples-email-form__form label {
+.samples-email-form__form label:not(.samples-email-form__consent) {
   display: block;
   margin-bottom: 0.35rem;
 }
 
-.samples-email-form__consent {
+.samples-email-form__form .samples-email-form__consent {
   display: flex;
   gap: 0.5rem;
   align-items: flex-start;
+  justify-content: flex-start;
+  align-self: flex-start;
   margin: 0.75rem 0 1rem;
   font-size: 0.9rem;
   color: var(--text-muted);
+  text-align: left;
+  max-width: 100%;
 }
 
 .samples-email-form__consent input {
