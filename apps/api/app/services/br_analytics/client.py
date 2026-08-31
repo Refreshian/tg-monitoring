@@ -1,6 +1,6 @@
 """Browser automation for brandanalytics.ru."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from app.schemas.preview import MentionItem
 from app.services.br_analytics.auth import BrAnalyticsAuth
@@ -13,7 +13,7 @@ from app.services.preview_samples_cache import SAMPLE_COUNT
 @dataclass
 class PreviewSearchResult:
     weekly_count: int | None = None
-    sample_items: list[MentionItem] = []
+    sample_items: list[MentionItem] = field(default_factory=list)
 
 
 class BrAnalyticsClient:
