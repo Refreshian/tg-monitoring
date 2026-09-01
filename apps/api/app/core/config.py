@@ -7,8 +7,8 @@ class Settings(BaseSettings):
     br_analytics_base_url: str = "https://brandanalytics.ru"
     br_analytics_login: str = ""
     br_analytics_password: str = ""
-    br_analytics_fallback_theme_id: str = "14132452"
-    br_analytics_fallback_theme_name: str = "Российская креативная неделя"
+    br_analytics_fallback_theme_id: str = "14166164"
+    br_analytics_fallback_theme_name: str = "Энергострой"
 
     playwright_headless: bool = True
     playwright_timeout_ms: int = 90_000
@@ -42,6 +42,9 @@ class Settings(BaseSettings):
     aitunnel_base_url: str = "https://api.aitunnel.ru/v1"
     aitunnel_model: str = "auto"
     aitunnel_max_tokens: int = 800
+
+    public_site_url: str = "https://tg-monitoring.online"
+    preview_samples_ttl_hours: int = 72
 
     @property
     def cors_origins(self) -> list[str]:

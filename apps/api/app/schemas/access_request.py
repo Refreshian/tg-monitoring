@@ -11,6 +11,7 @@ class AccessRequestCreate(BaseModel):
     )
     contact_email: EmailStr | None = None
     query: str | None = Field(default=None, max_length=500)
+    sample_token: str | None = Field(default=None, max_length=128)
     message: str | None = Field(default=None, max_length=2000)
 
 

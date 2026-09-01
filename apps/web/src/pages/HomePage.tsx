@@ -21,7 +21,7 @@ export function HomePage() {
           </p>
           <div className="hero__actions animate-rise animate-rise--delay-3">
             <Link className="button button--primary" to="/preview">
-              Попробовать предпросмотр
+              Оценить объём и стоимость
             </Link>
             <Link className="button button--ghost" to="/contact">
               Оставить заявку
@@ -50,13 +50,13 @@ export function HomePage() {
 
       <section className="section section--accent">
         <div className="container section__narrow">
-          <h2>Проверьте сбор до подключения</h2>
+          <h2>Оцените объём до подключения</h2>
           <p>
-            Введите поисковый запрос и посмотрите последние найденные упоминания — без
-            обязательств и до заказа доступа.
+            Введите поисковый запрос и получите оценку объёма упоминаний и ориентировочную
+            стоимость доступа — без обязательств и до заказа.
           </p>
           <Link className="button button--primary" to="/preview">
-            Открыть предпросмотр
+            Открыть оценку
           </Link>
         </div>
       </section>

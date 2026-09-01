@@ -15,16 +15,16 @@ Located in `apps/api/app/services/br_analytics/`:
 | Module | Responsibility |
 |---|---|
 | `auth.py` | Login at `/account/login/` (`#username`, `#ba_password`, `#button_submit`) |
-| `topics.py` | If `themes-create` has class `lock` → edit fallback theme; else create theme |
+| `topics.py` | Opens measurement theme editor (fallback theme, e.g. «Энергострой») |
 | `search.py` | Fill `#key_words_operator`, click `#show_result_btn` |
 | `parser.py` | Parse `#messages_container .feed_item` into `MentionItem` |
 | `client.py` | Orchestrates the full preview pipeline |
 
-### Fallback theme (no free slots)
+### Measurement theme (preview searches)
 
-- Name: `Российская креативная неделя`
-- ID: `14132452`
-- Edit URL: `/action/update_theme/14132452/`
+- Name: `Энергострой`
+- ID: `14166164`
+- Edit URL: `/action/update_theme/14166164/`
 - Config: `BR_ANALYTICS_FALLBACK_THEME_ID` / `BR_ANALYTICS_FALLBACK_THEME_NAME`
 
 ### Result DOM (from saved `edit_theme.html`)

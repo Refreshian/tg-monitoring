@@ -4,6 +4,7 @@ export type AccessRequestPayload = {
   monitoring_object: string;
   contact_email?: string;
   query?: string;
+  sample_token?: string;
   message?: string;
 };
 

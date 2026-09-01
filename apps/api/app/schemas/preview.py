@@ -1,12 +1,20 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field
 
 
 class MentionItem(BaseModel):
     source: str = Field(description="Platform or media outlet")
     title: str | None = None
     text: str
+    url: str | None = None
+    published_at: datetime | None = None
+
+
+class MentionTeaser(BaseModel):
+    """Public teaser: source and link only (no message text)."""
+
+    source: str
     url: str | None = None
     published_at: datetime | None = None
 
@@ -20,9 +28,30 @@ class PreviewResponse(BaseModel):
     original_query: str | None = None
     query_changed: bool = False
     query_note: str | None = None
-    total: int
-    items: list[MentionItem]
-    # Approximate access price for the visitor (BA monthly Regular tariff minus discount).
-    # Monthly volume is computed server-side and not shown in the UI yet.
+    weekly_count: int | None = None
+    estimated_monthly_messages: int | None = None
     estimated_price_rub: int | None = None
     price_is_from: bool = False
+    tariff_name: str | None = None
+    sample_token: str | None = None
+    samples_available: bool = False
+    teasers: list[MentionTeaser] = Field(default_factory=list)
+    # Kept empty; full snippets are delivered by email / magic link only.
+    total: int = 0
+    items: list[MentionItem] = Field(default_factory=list)
+
+
+class SendSamplesRequest(BaseModel):
+    sample_token: str = Field(min_length=8, max_length=128)
+    email: EmailStr
+
+
+class SendSamplesResponse(BaseModel):
+    sent: bool
+    message: str
+
+
+class PreviewSamplesResponse(BaseModel):
+    query: str
+    items: list[MentionItem]
+    expires_note: str = "Ссылка действует ограниченное время."

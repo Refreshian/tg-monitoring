@@ -6,15 +6,19 @@ type MonitoringRequestFormProps = {
   initialObject?: string;
   /** Optional preview search query attached to the lead */
   query?: string;
+  /** Token for auto-sending sample mentions when email is provided */
+  sampleToken?: string;
 };
 
 export function MonitoringRequestForm({
   title = "Заявка на мониторинг",
   initialObject = "",
   query,
+  sampleToken,
 }: MonitoringRequestFormProps) {
   const [contactName, setContactName] = useState("");
   const [contactPhone, setContactPhone] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
   const [monitoringObject, setMonitoringObject] = useState(initialObject);
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -28,8 +32,10 @@ export function MonitoringRequestForm({
       await createAccessRequest({
         contact_name: contactName,
         contact_phone: contactPhone,
+        contact_email: contactEmail.trim() || undefined,
         monitoring_object: monitoringObject,
         query: query || undefined,
+        sample_token: sampleToken || undefined,
       });
       setSent(true);
     } catch {
@@ -43,6 +49,9 @@ export function MonitoringRequestForm({
     return (
       <p className="success">
         Заявка отправлена. Мы свяжемся с вами, чтобы подключить мониторинг.
+        {contactEmail.trim() && sampleToken
+          ? " Если указан email, примеры упоминаний также отправлены на почту."
+          : null}
       </p>
     );
   }
@@ -73,6 +82,19 @@ export function MonitoringRequestForm({
         onChange={(event) => setContactPhone(event.target.value)}
         required
         minLength={5}
+      />
+
+      <label htmlFor="monitoring-email">
+        Email{sampleToken ? " (для примеров упоминаний)" : ""}
+      </label>
+      <input
+        id="monitoring-email"
+        name="email"
+        type="email"
+        autoComplete="email"
+        placeholder="you@company.ru"
+        value={contactEmail}
+        onChange={(event) => setContactEmail(event.target.value)}
       />
 
       <label htmlFor="monitoring-object">Объект мониторинга</label>
