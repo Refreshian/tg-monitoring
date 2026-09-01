@@ -167,9 +167,10 @@ class BrAnalyticsSearch:
 
     def _weekly_from_total_title(self, results_html: str) -> int | None:
         """Fallback when stats panel has no 'За неделю' yet."""
+        text = re.sub(r"&nbsp;?", " ", results_html)
         match = re.search(
-            r"Найдено\s+([\d\s]+)\s+сообщени[^\d]*(\d+)\s+дн",
-            results_html,
+            r"Найдено\s+([\d\s]+)\s+сообщени[^<]*?\s+(\d+)\s*дн",
+            text,
             flags=re.I,
         )
         if not match:
