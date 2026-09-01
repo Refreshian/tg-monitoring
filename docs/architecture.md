@@ -15,7 +15,7 @@ Located in `apps/api/app/services/br_analytics/`:
 | Module | Responsibility |
 |---|---|
 | `auth.py` | Login at `/account/login/` (`#username`, `#ba_password`, `#button_submit`) |
-| `topics.py` | Opens measurement theme editor (fallback theme, e.g. «Энергострой») |
+| `topics.py` | Opens measurement theme editor, or «Добавить новую тему» if it was removed |
 | `search.py` | Fill `#key_words_operator`, click `#show_result_btn` |
 | `parser.py` | Parse `#messages_container .feed_item` into `MentionItem` |
 | `client.py` | Orchestrates the full preview pipeline |
