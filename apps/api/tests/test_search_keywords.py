@@ -20,5 +20,5 @@ def test_weekly_from_total_title() -> None:
     search = BrAnalyticsSearch()
     html = "<div class='total_title'>Найдено 1&nbsp;886 сообщений за 2 дня</div>"
     weekly = search._weekly_from_total_title(html)
-    assert weekly == 6591  # 1886/2*7
+    assert weekly == 6601  # 1886/2*7
 
