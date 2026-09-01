@@ -22,19 +22,6 @@ _READ_WEEKLY_JS = """() => {
   return null;
 }"""
 
-_SET_KEYWORDS_JS = """(el, query) => {
-  el.focus();
-  el.innerHTML = '';
-  el.textContent = '';
-  while (el.firstChild) {
-    el.removeChild(el.firstChild);
-  }
-  el.textContent = query;
-  el.dispatchEvent(new Event('input', { bubbles: true }));
-  el.dispatchEvent(new Event('change', { bubbles: true }));
-  return (el.innerText || el.textContent || '').trim();
-}"""
-
 
 def _normalize_for_compare(text: str) -> str:
     lowered = text.lower().replace("ё", "е")
@@ -47,7 +34,6 @@ def _keywords_acceptable(actual: str, expected: str) -> bool:
     expected_norm = _normalize_for_compare(expected)
     if not expected_norm:
         return bool(actual_norm)
-    # Compare word overlap: user query tokens should appear in the field.
     tokens = [t for t in expected_norm.split() if len(t) >= 3]
     if not tokens:
         tokens = expected_norm.split()
@@ -67,7 +53,6 @@ class BrAnalyticsSearch:
         keywords = page.locator("#key_words_operator")
         await keywords.wait_for(state="visible")
 
-        # Theme editor loads saved keywords asynchronously — wait, then replace.
         try:
             await page.wait_for_function(
                 """() => {
@@ -88,18 +73,9 @@ class BrAnalyticsSearch:
 
         actual = (await keywords.inner_text()).strip()
         if not _keywords_acceptable(actual, query):
-            logger.warning(
-                "BA keywords mismatch after replace: expected %r, got %r",
-                query[:120],
-                actual[:120],
+            raise RuntimeError(
+                f"Failed to set preview keywords. Field contains: {actual!r}"
             )
-            await self._replace_keywords(page, keywords, query, force_keyboard=True)
-            await self._confirm_keywords_dialog(page)
-            actual = (await keywords.inner_text()).strip()
-            if not _keywords_acceptable(actual, query):
-                raise RuntimeError(
-                    f"Failed to set preview keywords. Field contains: {actual!r}"
-                )
 
         logger.info("BA keywords for preview: %r", actual[:160])
 
@@ -107,7 +83,6 @@ class BrAnalyticsSearch:
         await show_results.wait_for(state="visible")
         await show_results.click()
 
-        # Dialog may reappear when starting preview search
         await self._confirm_keywords_dialog(page)
 
         processing = page.locator(".js--processing_box")
@@ -138,7 +113,6 @@ class BrAnalyticsSearch:
                 "Screenshot saved to preview_debug.png"
             ) from None
 
-        # Wait until right-hand "За неделю" shows a numeric count.
         try:
             await page.wait_for_function(
                 f"() => {{ const v = ({_READ_WEEKLY_JS})(); return v != null; }}",
@@ -150,7 +124,7 @@ class BrAnalyticsSearch:
         weekly_count: int | None = None
         stats_html = ""
         results_html = await page.locator("#search_content").inner_html()
-        for _ in range(8):
+        for _ in range(12):
             stats = page.locator("#statistics")
             if await stats.count() > 0:
                 try:
@@ -162,30 +136,53 @@ class BrAnalyticsSearch:
                 break
             await page.wait_for_timeout(700)
 
+        if weekly_count is None:
+            weekly_count = self._weekly_from_total_title(results_html)
+
         return results_html, stats_html, weekly_count
 
-    async def _replace_keywords(
-        self,
-        page: Page,
-        keywords,
-        query: str,
-        *,
-        force_keyboard: bool = False,
-    ) -> None:
-        await keywords.click()
-        await keywords.evaluate(_SET_KEYWORDS_JS, query)
+    async def _replace_keywords(self, page: Page, keywords, query: str) -> None:
+        """
+        Replace theme keywords using BA's contenteditable editor.
 
-        if force_keyboard:
-            await keywords.click()
-            await page.keyboard.press("Control+A")
-            await page.keyboard.press("Backspace")
-            await page.keyboard.insert_text(query)
-            await page.keyboard.press("Tab")
-        else:
-            await page.keyboard.press("Tab")
+        BA only applies preview search when keywords are entered through the editor
+        (highlight spans), not when plain text is injected via innerHTML/textContent.
+        """
+        await keywords.click()
+        await page.keyboard.press("Control+A")
+        await page.keyboard.press("Backspace")
+        await page.keyboard.type(query, delay=20)
+        await page.keyboard.press("Tab")
+
+        try:
+            await page.wait_for_function(
+                """() => {
+                    const el = document.getElementById('key_words_operator');
+                    return el && el.querySelector('highlight, .highlight');
+                }""",
+                timeout=8_000,
+            )
+        except PlaywrightTimeoutError:
+            logger.warning("BA keyword highlights did not appear after typing")
+
+    def _weekly_from_total_title(self, results_html: str) -> int | None:
+        """Fallback when stats panel has no 'За неделю' yet."""
+        match = re.search(
+            r"Найдено\s+([\d\s]+)\s+сообщени[^\d]*(\d+)\s+дн",
+            results_html,
+            flags=re.I,
+        )
+        if not match:
+            return None
+        total_digits = re.sub(r"\D", "", match.group(1))
+        days_digits = re.sub(r"\D", "", match.group(2))
+        if not total_digits or not days_digits:
+            return None
+        total = int(total_digits)
+        days = max(int(days_digits), 1)
+        return int(round(total / days * 7))
 
     async def _read_weekly_count(self, page: Page) -> int | None:
-        """Read only the right-hand stats value labeled 'За неделю'."""
         try:
             value = await page.evaluate(_READ_WEEKLY_JS)
         except Exception:  # noqa: BLE001
@@ -195,7 +192,6 @@ class BrAnalyticsSearch:
         return None
 
     async def _confirm_keywords_dialog(self, page: Page) -> None:
-        """Accept 'Проверка ключевых фраз' modal if Brand Analytics shows it."""
         title = page.get_by_text("Проверка ключевых фраз", exact=False)
         try:
             await title.first.wait_for(state="visible", timeout=4_000)
